@@ -1,40 +1,44 @@
-from openai import OpenAI as gpt
-from tokens import *
-import time
+from openai import OpenAI
 from pathlib import Path
+import os
+from typing import Optional, Literal
+from telegram import Update
+from telegram.ext import ContextTypes
+import dotenv
 
 class chat:
-    def __generator__(self, message, token) -> str:
-        response = self.client.completions.create(
-            model="davinci-002",
-            prompt=message,
-            max_tokens=token,
-            temperature=1,
-            presence_penalty=0,
-            frequency_penalty=0,
-            top_p=1
+    def __generator__(self, token: Optional[int] = 50, message: Optional[str] = None) -> str:
+        if message is not None:
+            self.messages.append({"role": "user", "content": message})
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=self.messages,
+            max_tokens=token
         )
-        return response.choices[0].text.strip(" ,")
+        self.messages.pop()
+        return response.choices[0].message.content.strip()
     
-    def __setup__(self) -> None:
-        system = "As a system role don't repeat yourself, don't try to complete user's message, don't even try to complete user's message and predict it, just send a new one, be friendly, don't be rude, be a very helpful friend!"
-        self.__generator__(system, 1)
+    def __setup__(self) -> Literal[None]:
+        self.model = "gpt-3.5-turbo"
+        self.image_model = "dall-e-3"
+        self.messages = [{"role": "system","content": "Don't repeat yourself, be helpful and be assistant for my chatbot"}]
+        self.__generator__(token=1)
         
-    def __init__(self) -> None:
-        self.client = gpt(api_key=TOKENOPENAI)
+    def __init__(self) -> Literal[None]:
+        self.client = OpenAI(api_key=os.environ['TOKENOPENAI'])
+        dotenv.load_dotenv()
         self.__setup__()
     
-    def bot(self, update, context) -> str:
+    def bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
         user = update.message.from_user
         user_message = update.message.text
-        message_to_user = "This user {} sent this message {}, don't try to complete it, don't try to predict it, and don't try to put down this user".format(update.message.from_user.username, user_message)
+        message_to_user = "This user {} sent this message {}".format(update.message.from_user.username, user_message)
         response = self.__generator__(message_to_user, 256)
-        time.sleep(5)
         return response
     
-    def generate(self, message):
+    def generate(self, *, message: str) -> str:
         response = self.client.images.generate(
-            model="dall-e-3",
+            model=self.image_model,
             prompt=message,
             size="1024x1024",
             quality="standard",
@@ -43,7 +47,7 @@ class chat:
         image_url = response.data[0].url
         return image_url
     
-    def tts(self, message):
+    def tts(self, *, message: str) -> str:
         speech_file_path = Path(__file__).parent / "tts_from_user.mp3"
         response = self.client.audio.speech.create(
             model="tts-1",

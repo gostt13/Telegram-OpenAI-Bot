@@ -1,5 +1,4 @@
 from chatgpt import chat
-from tokens import *
 from texts import *
 import logging
 import geocoder
@@ -11,9 +10,9 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
-
 class telegrambot:
     def __init__(self):
+        self.URL = "https://api.openweathermap.org/data/3.0/onecall?lat={}&lon={}&exclude={}&appid={}"
         self.Chat = chat()
     
     async def start(self,update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -49,7 +48,7 @@ class telegrambot:
             user_city = user_location_info.city
 
             user_id = update.message.from_user.id
-            result = requests.get(URL.format(latitude, longitude, "minutely,hourly,daily", WEATHER_API))
+            result = requests.get(self.URL.format(latitude, longitude, "minutely,hourly,daily", os.environ['WEATHER_API']))
             result.raise_for_status()  # Raise an exception if the request failed
             weather = result.json()
         except Exception as e:
@@ -90,7 +89,7 @@ class telegrambot:
         await context.bot.answer_inline_query(update.inline_query.id, results)
     
     def main(self):
-        application = ApplicationBuilder().token(TOKENTG).build()
+        application = ApplicationBuilder().token(os.environ['TOKENTG']).build()
             
         chat_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), self.chatgpt)
         application.add_handler(chat_handler)
