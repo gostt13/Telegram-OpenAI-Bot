@@ -1,5 +1,5 @@
 about = """
-Hello everyone, my name is (Put your name), and I am the developer of this bot.
+Hello everyone, my name is Tamerlan Baimurat, and I am the developer of this bot.
 
 This bot is being developed gradually and is currently in beta testing, so you can always expect new features.
 
@@ -12,4 +12,6 @@ This bot is capable of:
 4.Converting text to audio.
 5.Converting audio to text (UNDER DEVELOPMENT).
 6.Showing you memes (UNDER DEVELOPMENT).
+
+Made by gostt7 (gostt13 github)
 """

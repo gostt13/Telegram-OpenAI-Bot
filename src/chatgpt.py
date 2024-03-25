@@ -7,36 +7,35 @@ from telegram.ext import ContextTypes
 import dotenv
 
 class chat:
-    def __generator__(self, token: Optional[int] = 50, message: Optional[str] = None) -> str:
-        if message is not None:
-            self.messages.append({"role": "user", "content": message})
+    def __generator(self, token: Optional[int] = 50, message: Optional[str] = None) -> str:
+        self.messages.append({"role": "user", "content": message}) if message is not None else False
         response = self.client.chat.completions.create(
             model=self.model,
             messages=self.messages,
-            max_tokens=token
+            max_tokens=token,
+            temperature=0.6,
         )
-        self.messages.pop()
+        self.messages.pop() if message is not None else False
         return response.choices[0].message.content.strip()
     
     def __setup__(self) -> Literal[None]:
         self.model = "gpt-3.5-turbo"
         self.image_model = "dall-e-3"
         self.messages = [{"role": "system","content": "Don't repeat yourself, be helpful and be assistant for my chatbot"}]
-        self.__generator__(token=1)
+        self.__generator(token=1)
         
     def __init__(self) -> Literal[None]:
         self.client = OpenAI(api_key=os.environ['TOKENOPENAI'])
-        dotenv.load_dotenv()
         self.__setup__()
     
     def bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
         user = update.message.from_user
         user_message = update.message.text
         message_to_user = "This user {} sent this message {}".format(update.message.from_user.username, user_message)
-        response = self.__generator__(message_to_user, 256)
+        response = self.__generator(256, message_to_user)
         return response
     
-    def generate(self, *, message: str) -> str:
+    def generate(self, message: str) -> str:
         response = self.client.images.generate(
             model=self.image_model,
             prompt=message,
