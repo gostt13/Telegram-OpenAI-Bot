@@ -4,7 +4,6 @@ import os
 from typing import Optional, Literal
 from telegram import Update
 from telegram.ext import ContextTypes
-import dotenv
 
 class chat:
     def __generator(self, token: Optional[int] = 50, message: Optional[str] = None) -> str:
@@ -46,7 +45,7 @@ class chat:
         image_url = response.data[0].url
         return image_url
     
-    def tts(self, *, message: str) -> str:
+    def tts(self, message: str) -> str:
         speech_file_path = Path(__file__).parent / "tts_from_user.mp3"
         response = self.client.audio.speech.create(
             model="tts-1",
